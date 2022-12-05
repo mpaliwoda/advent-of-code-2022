@@ -4,16 +4,15 @@ fn main() {
     let input = fs::read_to_string("./src/bin/day1/input.txt").unwrap();
     let input = input.trim();
 
-    let mut calories: Vec<u32> = Vec::new();
-
-    for chunk in input.split("\n\n") {
-        calories.push(
+    let mut calories: Vec<u32> = input
+        .split("\n\n")
+        .map(|chunk| {
             chunk
                 .split("\n")
                 .map(|num| num.parse::<u32>().unwrap())
-                .sum(),
-        );
-    }
+                .sum()
+        })
+        .collect();
 
     calories.sort_by(|a, b| b.cmp(a));
 
