@@ -29,25 +29,14 @@ impl Rucksack {
     }
 
     pub fn common_items(rucksacks: &Vec<Rucksack>) -> HashSet<&char> {
-        assert!(rucksacks.len() > 0);
-
-        let mut contents = rucksacks.iter().map(Rucksack::all_items);
-        let mut result = contents.next().unwrap();
-
-        for rucksack in contents {
-            result = result.intersection(&rucksack).map(|x| *x).collect();
-        }
-
-        return result;
+        return rucksacks
+            .iter()
+            .map(Rucksack::all_items)
+            .reduce(|acc, item| acc.intersection(&item).map(|x| *x).collect())
+            .unwrap();
     }
 
     fn all_items(&self) -> HashSet<&char> {
-        let mut items = HashSet::new();
-
-        for item in self.left.iter().chain(&self.right) {
-            items.insert(item);
-        }
-
-        return items;
+        return self.left.iter().chain(&self.right).collect();
     }
 }
