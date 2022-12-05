@@ -1,63 +1,50 @@
-use std::{collections::HashSet, fs};
+mod rucksack;
+
+use rucksack::Rucksack;
+use std::{fs, str::FromStr};
+
+fn generate_priorities() -> Vec<char> {
+    return (b'a'..=b'z').chain(b'A'..=b'Z').map(char::from).collect();
+}
+
+fn get_priority(c: &char, priorities: &Vec<char>) -> usize {
+    return priorities.iter().position(|item| c == item).unwrap() + 1;
+}
 
 fn main() {
     let input = fs::read_to_string("./src/bin/day3/input.txt").expect("where input");
     let input = input.trim();
 
-    let mut prio: Vec<char> = (b'a'..=b'z').map(char::from).collect();
-    prio.extend((b'A'..=b'Z').map(char::from));
+    let priorities = generate_priorities();
 
-    println!("{}", part1(input, &prio));
-    println!("{}", part2(input, &prio));
-}
+    // part 1
+    let mut priorities_sum: usize = 0;
 
-fn part1(input: &str, priorities: &Vec<char>) -> usize {
-    let mut prio_sum: usize = 0;
+    for raw_rucksack in input.split("\n") {
+        let rucksack = Rucksack::from_str(raw_rucksack).unwrap();
+        let items_in_both_compartments = rucksack.in_both_compartments();
+        priorities_sum += items_in_both_compartments
+            .iter()
+            .fold(0, |acc, letter| acc + get_priority(letter, &priorities));
+    }
 
-    for rucksack in input.split("\n") {
-        let mid = rucksack.len() / 2; // rucksack len is guaranteed to be divisible by two
-        let (left, right) = rucksack.split_at(mid);
-        let (left, right): (HashSet<&str>, HashSet<&str>) = (
-            HashSet::from_iter(left.split("").filter(|&s| s != "")),
-            HashSet::from_iter(right.split("").filter(|&s| s != "")),
-        );
+    println!("Part 1: {}", priorities_sum);
 
-        let in_both = left.intersection(&right);
+    // part 2
+    let input: Vec<&str> = input.split("\n").collect();
+    let mut priorities_sum: usize = 0;
 
-        for item in in_both {
-            let item = item.chars().next().unwrap();
-            prio_sum += priorities
-                .iter()
-                .position(|&letter| letter == item)
-                .unwrap()
-                + 1;
+    for elve_group in input.chunks(3) {
+        let group_rucksacks = elve_group
+            .iter()
+            .map(|line| Rucksack::from_str(line).unwrap())
+            .collect::<Vec<Rucksack>>();
+
+        let common_items = Rucksack::common_items(&group_rucksacks);
+        for item in common_items {
+            priorities_sum += get_priority(item, &priorities);
         }
     }
 
-    return prio_sum;
-}
-
-fn part2(input: &str, priorities: &Vec<char>) -> usize {
-    let input: Vec<&str> = input.split("\n").collect();
-    let mut prio_sum: usize = 0;
-
-    for elve_group in input.chunks(3) {
-        let mut group_items = elve_group
-            .iter()
-            .map(|elve| HashSet::<char>::from_iter(elve.chars()));
-
-        let acc = group_items.next().unwrap();
-        let in_all = group_items.fold(acc, |acc, set| acc.intersection(&set).cloned().collect());
-
-        assert!(in_all.len() == 1);
-
-        let in_all = in_all.iter().next().unwrap();
-        prio_sum += priorities
-            .iter()
-            .position(|&letter| &letter == in_all)
-            .unwrap()
-            + 1;
-    }
-
-    return prio_sum;
+    println!("Part 2: {}", priorities_sum);
 }
