@@ -22,7 +22,7 @@ fn find_marker(buffer: &Vec<char>, marker_len: usize) -> usize {
 
     while start < buffer.len() - marker_len && end < buffer.len() {
         if seq.len() == marker_len {
-            marker_ix = start + marker_len;
+            marker_ix = end;
             break;
         }
 
